@@ -62,7 +62,6 @@ export default async function MainOG() {
                   : ""}
               </div>
               <div tw="flex grow">{post.title}</div>
-              <div tw="flex text-gray-400 pl-7">{post?.viewsFormatted}</div>
             </div>
           ))}
         </main>

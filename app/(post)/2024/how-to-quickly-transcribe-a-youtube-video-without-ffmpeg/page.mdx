@@ -1,0 +1,97 @@
+export const metadata = {
+  title: 'How to Quickly Transcribe a YouTube Video (Programmatically)',
+  description: "Programmatically transcribe any valid youtube video without downloading it, by using Deepgram's Rust SDK",
+  openGraph: {
+    title: 'How to Quickly Transcribe a YouTube Video (Programmatically)',
+    description: "Programmatically transcribe any valid youtube video without downloading it, by using Deepgram's Rust SDK",
+    images: [{ url: '/og/its-hard-to-forego-efficiency' }]
+  }
+}
+
+In this blog post, we'll explore how to transcribe a YouTube video using Rust and the Deepgram API, without relying on FFmpeg. By leveraging the power of Rust and the Deepgram API, we can achieve fast and accurate transcriptions with minimal setup.
+
+To get started, make sure you have Rust installed on your system. We'll be using the following dependencies:
+
+- `clap`: For parsing command-line arguments
+- `deepgram`: For interacting with the Deepgram API
+- `rusty_ytdl`: For downloading the audio from a YouTube video
+- `tokio`: For asynchronous programming
+- `dotenvy`: For loading environment variables from a `.env` file
+
+First, let's define the command-line arguments using the `clap` crate. We'll expect a single argument, `youtube_url`, which represents the URL of the YouTube video we want to transcribe.
+
+```rust
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Youtube video url to transcribe
+    #[arg(short='u', long="url")]
+    youtube_url: String,
+}
+```
+
+Next, in the `main` function, we'll load the Deepgram API key from the environment variables using `dotenvy`. We'll also parse the command-line arguments and create a new instance of the Deepgram client.
+
+```rust
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    dotenvy::dotenv().expect(".env file not found");
+    let deepgram_api_key =
+        env::var("DEEPGRAM_API_KEY").expect("the DEEPGRAM_API_KEY environmental variable is required");
+    let dg_client = Deepgram::new(&deepgram_api_key);
+    let args = Args::parse();
+    let yt_url = args.youtube_url;
+    let transcript = yt_url_to_text(&yt_url, &dg_client).await?;
+    println!("video transcript {transcript}");
+    Ok(())
+}
+```
+
+The main logic for transcribing the YouTube video is encapsulated in the `yt_url_to_text` function. Here's how it works:
+
+1. We define the video options using `VideoOptions` from the `rusty_ytdl` crate. We specify that we want the highest audio quality and filter for audio only.
+
+2. We create a new `Video` instance using the provided YouTube URL and video options.
+
+3. We download the audio stream of the video and store it in memory as a vector of bytes.
+
+4. We create an `AudioSource` from the downloaded audio bytes using `AudioSource::from_buffer`.
+
+5. We configure the transcription options using `Options::builder` from the `deepgram` crate. We enable punctuation, set the tier to "Enhanced", and specify the language as US English.
+
+6. We make a request to the Deepgram API using the `prerecorded` method, passing the audio source and transcription options.
+
+7. Finally, we return the transcribed text from the response.
+
+```rust
+async fn yt_url_to_text(
+    youtube_url: &str,
+    deepgram_client: &Deepgram,
+) -> anyhow::Result<String> {
+    // ... (code omitted for brevity)
+}
+```
+
+And that's it! With just a few lines of Rust code, we can transcribe a YouTube video using the Deepgram API without relying on FFmpeg. The transcription process is fast and accurate, thanks to Deepgram's advanced speech recognition technology.
+
+To run the program, simply provide the YouTube video URL as a command-line argument:
+
+```
+cargo run -- -u "https://www.youtube.com/watch?v=example"
+```
+
+The transcribed text will be printed to the console.
+
+By leveraging Rust's performance and the Deepgram API's capabilities, we can easily transcribe YouTube videos programmatically. This approach eliminates the need for FFmpeg and provides a streamlined solution for transcription tasks.
+
+Feel free to explore further possibilities, such as saving the transcripts to a file,processing the transcripts for analysis, or integrating the transcription functionality into your own applications.
+
+I hope this blog post has provided you with a clear understanding of how to transcribe YouTube videos using Rust and the Deepgram API. The code snippets demonstrate the simplicity and efficiency of this approach, enabling you to quickly obtain accurate transcriptions without the need for additional dependencies like FFmpeg.
+
+Remember to handle any potential errors and edge cases in your implementation. You can also explore additional features and options provided by the Deepgram API to customize the transcription process according to your specific requirements.
+
+Rust's strong typing, performance, and safety guarantees make it an excellent choice for building robust and efficient transcription tools. By combining Rust with the Deepgram API, you can create powerful applications that leverage speech recognition technology seamlessly.
+
+So go ahead and experiment with this code, adapt it to your needs, and unlock the potential of automatic transcription in your projects. Whether you're working on content analysis, subtitling, or any other application that requires speech-to-text capabilities, Rust and Deepgram provide a reliable and efficient solution.
+
+Happy transcribing!
